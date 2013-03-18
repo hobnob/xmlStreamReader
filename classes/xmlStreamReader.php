@@ -33,6 +33,7 @@ class xmlStreamReader
         }
         
         xml_parser_free($xml_parser);
+        return $this;
     }
 
     protected function _parseString( $parser, $data, $isFinal )
@@ -65,7 +66,7 @@ class xmlStreamReader
 
         $this->_callbacks[$namespace][] = array(
             'data'     => new StdClass,
-            'callback' => $callback;
+            'callback' => $callback,
         );
 
         return $this;
