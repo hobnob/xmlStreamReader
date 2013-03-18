@@ -1,7 +1,9 @@
 <?php
 class xmlStreamReader
 {
-    private $_callbacks = array();
+    private $_callbacks        = array();
+    private $_currentNamespace = '/';
+    private $_namespaceData    = array();
 
     public function parse( $data, $chunkSize = 1024 )
     {
@@ -71,16 +73,58 @@ class xmlStreamReader
 
     protected function _start( $parser, $tag, $attributes )
     {
+        $this->_currentNamespace .= $tag.'/';
 
+        $obj             = new StdClass;
+        $obj->data       = '';
+        $obj->attributes = $attributes;
+
+        $this->_namespaceData[$this->_currentNamespace] = $obj;
     }
 
-    protected function _data()
+    protected function _data( $parser, $data )
     {
-
+        $this->_namespaceData[$this->_currentNamespace]->data .= $data;
     }
 
-    protected function _end()
+    protected function _end( $parser, $tag )
     {
+        $namespaceParts = explode( '/', $this->_currentNamespace );
 
+        foreach( $this->_callbacks as $namespace => $callback )
+        {
+            if ( strpos( $namespace, $this->_currentNamespace ) !== FALSE )
+            {
+                $obj = $callback['data'];
+                foreach ( $namespaceParts as $part )
+                {
+                    if ( !isset( $obj->{$part} ) )
+                    {
+                        $obj->{$part} = new StdClass;
+                    }
+
+                    $obj = $obj->{$part};
+                }
+
+                $obj->{end($namespaceParts)} =
+                    $this->_namespaceData[$this->_currentNamespace];
+            }
+
+            if ( $namespace === $this->_currentNamespace )
+            {
+                call_user_func_array(
+                    $callback['callback'], array($callback['data'])
+                );
+
+                $callback['data'] = new StdClass;
+            }
+        }
+
+        unset( $this->_namespaceData[$this->_currentNamespace] );
+        $this->_currentNamespace = substr(
+            $this->_currentNamespace,
+            strlen($this->_currentNamespace),
+            strlen(end($namespaceParts)) + 1
+        );
     }
 }
