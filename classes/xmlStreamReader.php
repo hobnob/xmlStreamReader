@@ -110,42 +110,56 @@ class xmlStreamReader
 
     protected function _end( $parser, $tag )
     {
-        $namespaceParts = explode( '/', $this->_currentNamespace );
+        $namespaceParts = explode(
+            '/', trim( strtolower($this->_currentNamespace), '/' ) );
 
-        foreach( $this->_callbacks as $namespace => $callback )
+        foreach( $this->_callbacks as $namespace => $callbacks )
         {
             if ( strpos( $namespace, $this->_currentNamespace ) !== FALSE )
             {
-                $obj = $callback['data'];
-                foreach ( $namespaceParts as $part )
+                foreach ( $callbacks as $key => $callback )
                 {
-                    if ( !isset( $obj->{$part} ) )
+                    $obj = $callback['data'];
+                    foreach ( $namespaceParts as $part )
                     {
-                        $obj->{$part} = new StdClass;
+                        if ( !isset( $obj->nodes ) )
+                        {
+                            $obj->nodes = array();
+                        }
+
+                        if ( !isset( $obj->nodes[$part] ) )
+                        {
+                            $obj->nodes[$part] = new StdClass;
+                        }
+
+                        $obj = $obj->nodes[$part];
                     }
 
-                    $obj = $obj->{$part};
+                    $obj->data =
+                        trim($this->_namespaceData[$this->_currentNamespace]->data);
+
+                    $obj->attributes =
+                        $this->_namespaceData[$this->_currentNamespace]->attributes;
+
+                    if ( $namespace === $this->_currentNamespace )
+                    {
+                        //Find part of the object that is referenced by the
+                        //namespace
+                        call_user_func_array(
+                            $callback['callback'], array($obj)
+                        );
+
+                        $callback['data'] = new StdClass;
+                    }
                 }
-
-                $obj->{end($namespaceParts)} =
-                    $this->_namespaceData[$this->_currentNamespace];
-            }
-
-            if ( $namespace === $this->_currentNamespace )
-            {
-                call_user_func_array(
-                    $callback['callback'], array($callback['data'])
-                );
-
-                $callback['data'] = new StdClass;
             }
         }
 
         unset( $this->_namespaceData[$this->_currentNamespace] );
         $this->_currentNamespace = substr(
             $this->_currentNamespace,
-            strlen($this->_currentNamespace),
-            strlen(end($namespaceParts)) + 1
+            0,
+            strlen($this->_currentNamespace) - (strlen($tag) + 1)
         );
     }
 }
