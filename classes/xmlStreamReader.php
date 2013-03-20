@@ -19,9 +19,17 @@ class xmlStreamReader
         xml_set_object( $parser, $this );
         xml_set_element_handler( $parser, '_start', '_end' );
         xml_set_character_data_handler( $parser, '_data' ); 
+        xml_set_default_handler( $parser, '_data' );
+
+        $obj             = new StdClass;
+        $obj->data       = '';
+        $obj->attributes = array();
+
+        $this->_namespaceData['/'] = $obj;
 
         if ( is_resource( $data ) )
         {
+            fseek( $data, 0 );
             while( $chunk = fread($data, $chunkSize) )
             {
                 $this->_parseString( $parser, $chunk, feof($data) );
