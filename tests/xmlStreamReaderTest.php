@@ -1,23 +1,32 @@
 <?php
 class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 {
-    public function testReturnValue()
+
+    public function getData()
     {
-        $file      = fopen(__DIR__.'/test.xml', 'r');
+        return array(
+            array(fopen(__DIR__.'/test.xml', 'r')),
+            array(file_get_contents(__DIR__.'/test.xml')),
+        );
+    }
+
+    /**
+     * @dataProvider getData
+     */
+    public function testReturnValue( $data )
+    {
         $xmlParser = new xmlStreamReader();
 
-        $this->assertSame( $xmlParser, $xmlParser->parse($file) );
-        $this->assertSame( $xmlParser, $xmlParser->parse($file), 2000 );
-
-        $data = '<xml>Some data</xml>';
         $this->assertSame( $xmlParser, $xmlParser->parse($data) );
         $this->assertSame( $xmlParser, $xmlParser->parse($data), 2000 );
     }
 
-    public function testSingleCallback()
+    /**
+     * @dataProvider getData
+     */
+    public function testSingleCallback( $data )
     {
         $passed    = FALSE;
-        $file      = fopen(__DIR__.'/test.xml', 'r');
         $xmlParser = new xmlStreamReader();
 
         $callback = function() use (&$passed) {
@@ -25,22 +34,18 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         };
 
         $xmlParser->registerCallback('/rss/channel/title', $callback);
-        $xmlParser->parse($file);
-
-        $this->assertTrue( $passed );
-
-        $passed = FALSE;
-        $xmlParser->registerCallback('/xml/callback', $callback);
-        $xmlParser->parse('<xml><callback /></xml>');
+        $xmlParser->parse($data);
 
         $this->assertTrue( $passed );
     }
 
-    public function testMultipleCalls()
+    /**
+     * @dataProvider getData
+     */
+    public function testMultipleCalls( $data )
     {
         $called        = 0;
         $expectedItems = 25;
-        $file          = fopen(__DIR__.'/test.xml', 'r');
         $xmlParser     = new xmlStreamReader();
 
         $callback = function() use (&$called) {
@@ -48,23 +53,19 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         };
 
         $xmlParser->registerCallback('/rss/channel/item', $callback);
-        $xmlParser->parse($file);
+        $xmlParser->parse($data);
 
         $this->assertSame( $expectedItems, $called );
-
-        $called = 0;
-        $xmlParser->registerCallback('/xml/callback', $callback);
-        $xmlParser->parse('<xml><callback /></xml>');
-
-        $this->assertSame( 1, $called );
     }
 
-    public function testMultipleCallbacks()
+    /**
+     * @dataProvider getData
+     */
+    public function testMultipleCallbacks( $data )
     {
         $called1       = 0;
         $called2       = 0;
         $expectedItems = 50;
-        $file          = fopen(__DIR__.'/test.xml', 'r');
         $xmlParser     = new xmlStreamReader();
 
         $callback = function() use (&$called1) {
@@ -77,30 +78,22 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 
         $xmlParser->registerCallback('/rss/channel/item', $callback);
         $xmlParser->registerCallback('/rss/channel/item', $callback2);
-        $xmlParser->parse($file);
+        $xmlParser->parse($data);
 
         $this->assertSame( $expectedItems / 2, $called1 );
         $this->assertSame( $expectedItems / 2, $called2 );
         $this->assertSame( $expectedItems, $called1 + $called2 );
-
-        $called1 = 0;
-        $called2 = 0;
-        $xmlParser->registerCallback('/xml/callback', $callback);
-        $xmlParser->registerCallback('/xml/callback', $callback2);
-        $xmlParser->parse('<xml><callback /></xml>');
-
-        $this->assertSame( 1, $called1 );
-        $this->assertSame( 1, $called2 );
-        $this->assertSame( 2, $called1 + $called2 );
     }
 
-    public function testMultipleNamespaces()
+    /**
+     * @dataProvider getData
+     */
+    public function testMultipleNamespaces( $data )
     {
         $called1        = 0;
         $called2        = 0;
         $expectedItems  = 25;
         $expectedItems2 = 240;
-        $file           = fopen(__DIR__.'/test.xml', 'r');
         $xmlParser      = new xmlStreamReader();
 
         $callback = function() use (&$called1) {
@@ -113,33 +106,19 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 
         $xmlParser->registerCallback('/rss/channel/item', $callback);
         $xmlParser->registerCallback('/rss/channel/item/category', $callback2);
-        $xmlParser->parse($file);
+        $xmlParser->parse($data);
 
         $this->assertSame( $expectedItems, $called1 );
         $this->assertSame( $expectedItems2, $called2 );
-
-        $called1 = 0;
-        $called2 = 0;
-        $xmlParser->registerCallback('/xml/callback', $callback);
-        $xmlParser->registerCallback('/xml/anothercallback/title', $callback2);
-        $xmlParser->parse('
-            <xml>
-                <callback />
-                <anothercallback>
-                    <title>Text</title>
-                </anothercallback>
-            </xml>');
-
-        $this->assertSame( 1, $called1 );
-        $this->assertSame( 1, $called2 );
-        $this->assertSame( 2, $called1 + $called2 );
     }
 
-    public function testReturnObjects()
+    /**
+     * @dataProvider getData
+     */
+    public function testReturnObjects($data)
     {
         $expectedObj = new StdClass;
         $passed      = 0;
-        $file        = fopen(__DIR__.'/test.xml', 'r');
         $xmlParser   = new xmlStreamReader();
 
         $expectedObj->attributes = array();
@@ -165,24 +144,8 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         };
 
         $xmlParser->registerCallback('/rss/channel/image', $callback);
-        $xmlParser->parse($file);
+        $xmlParser->parse($data);
 
         $this->assertGreaterThan( 0, $passed );
-/*
-        $called1 = 0;
-        $called2 = 0;
-        $xmlParser->registerCallback('/xml/callback', $callback);
-        $xmlParser->registerCallback('/xml/anothercallback/title', $callback2);
-        $xmlParser->parse('
-            <xml>
-                <callback />
-                <anothercallback>
-                    <title>Text</title>
-                </anothercallback>
-            </xml>');
-
-        $this->assertSame( 1, $called1 );
-        $this->assertSame( 1, $called2 );
-        $this->assertSame( 2, $called1 + $called2 );*/
     }
 }
