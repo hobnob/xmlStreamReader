@@ -93,7 +93,12 @@ class xmlStreamReader
 
         $obj             = new StdClass;
         $obj->data       = '';
-        $obj->attributes = $attributes;
+        $obj->attributes = array();
+
+        foreach ( $attributes as $key => $val )
+        {
+            $obj->attributes[strtolower($key)] = $val;
+        }
 
         $this->_namespaceData[$this->_currentNamespace] = $obj;
     }
