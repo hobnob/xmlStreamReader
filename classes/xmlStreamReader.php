@@ -56,6 +56,12 @@ class xmlStreamReader
             throw new Exception('Callback must be callable');
         }
 
+        $namespace = strtoupper($namespace);
+        if ( substr($namespace, -1, 1) !== '/' )
+        {
+            $namespace .= '/';
+        }
+
         if ( !isset( $this->_callbacks[$namespace] ) )
         {
             $this->_callback[$namespace] = array();    
