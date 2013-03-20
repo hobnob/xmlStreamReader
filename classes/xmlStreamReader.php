@@ -115,7 +115,7 @@ class xmlStreamReader
 
         foreach( $this->_callbacks as $namespace => $callbacks )
         {
-            if ( strpos( $namespace, $this->_currentNamespace ) !== FALSE )
+            if ( strpos( $this->_currentNamespace, $namespace ) !== FALSE )
             {
                 foreach ( $callbacks as $key => $callback )
                 {
