@@ -1,4 +1,12 @@
 <?php
+/**
+ * Parses a string or stream of XML, calling back to a function when a
+ * specified element is found
+ *
+ * @author David North
+ * @package xmlStreamReader
+ * @license http://opensource.org/licenses/mit-license.php
+ */
 class xmlStreamReader
 {
     private $_callbacks        = array();

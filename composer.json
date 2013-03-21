@@ -4,7 +4,7 @@
     "description": "PHP SAX XML Stream Reader",
     "keywords": ["XML","Stream"],
     "homepage": "https://github.com/hobnob/xmlStreamReader",
-    "license": "Zlib",
+    "license": "MIT",
     "authors": [
         {
             "name": "David North",
