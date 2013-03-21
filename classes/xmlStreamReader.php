@@ -14,6 +14,11 @@ class xmlStreamReader
             throw new Exception( 'Data must be a string or a stream resource' );
         }
 
+        if ( !is_int( $chunkSize ) )
+        {
+            throw new Exception( 'Chunk size must be an integer' );
+        }
+
         $parser = xml_parser_create();
 
         xml_set_object( $parser, $this );
@@ -146,7 +151,7 @@ class xmlStreamReader
                         //Find part of the object that is referenced by the
                         //namespace
                         call_user_func_array(
-                            $callback['callback'], array($obj)
+                            $callback['callback'], array($this, $obj)
                         );
 
                         $callback['data'] = new StdClass;

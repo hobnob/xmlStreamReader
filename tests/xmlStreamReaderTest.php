@@ -10,6 +10,67 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testNonStringParse()
+    {
+        $xmlParser = new xmlStreamReader();
+        $this->setExpectedException(
+            'Exception', 'Data must be a string or a stream resource'
+        );
+
+        $xmlParser->parse(1);
+    }
+
+    public function testInvalidResourceParse()
+    {
+        $resource  = xml_parser_create();
+        $xmlParser = new xmlStreamReader();
+        $this->setExpectedException(
+            'Exception', 'Data must be a string or a stream resource'
+        );
+
+        $xmlParser->parse($resource);
+    }
+
+    public function testInvalidChunkSize()
+    {
+        $xmlParser = new xmlStreamReader();
+        $this->setExpectedException(
+            'Exception', 'Chunk size must be an integer'
+        );
+
+        $xmlParser->parse('<xml>data</xml>', '1024');
+    }
+
+    public function testInvalidXml()
+    {
+        $xmlParser = new xmlStreamReader();
+        $this->setExpectedException(
+            'Exception', 'Mismatched tag'
+        );
+
+        $xmlParser->parse('<xml><unclosedTag>data</xml>');
+    }
+
+    public function testInvalidNamespace()
+    {
+        $xmlParser = new xmlStreamReader();
+        $this->setExpectedException(
+            'Exception', 'Namespace must be a string'
+        );
+
+        $xmlParser->registerCallback(1234, function() {});
+    }
+
+    public function testInvalidFunction()
+    {
+        $xmlParser = new xmlStreamReader();
+        $this->setExpectedException(
+            'Exception', 'Callback must be callable'
+        );
+
+        $xmlParser->registerCallback('/', 'someUndefinedMethod');
+    }
+
     /**
      * @dataProvider getData
      */
@@ -138,7 +199,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         $expectedObj->nodes['link']->data = 'http://www.guardian.co.uk/technology';
         $expectedObj->nodes['link']->attributes = array();
 
-        $callback = function( $actualObj ) use (&$passed, $expectedObj) {
+        $callback = function( $parser, $actualObj ) use (&$passed, $expectedObj) {
             $this->assertEquals( $expectedObj, $actualObj );
             $passed++;
         };
