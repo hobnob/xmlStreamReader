@@ -176,6 +176,34 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider getData
      */
+    public function testStopParsing( $data )
+    {
+        $called1        = 0;
+        $called2        = 0;
+        $expectedItems  = 1;
+        $expectedItems2 = 8;
+        $xmlParser      = new xmlStreamReader();
+
+        $callback = function($parser) use (&$called1) {
+            $called1++;
+            $parser->stopParsing();
+        };
+
+        $callback2 = function() use (&$called2) {
+            $called2++;
+        };
+
+        $xmlParser->registerCallback('/rss/channel/item', $callback);
+        $xmlParser->registerCallback('/rss/channel/item/category', $callback2);
+        $xmlParser->parse($data);
+
+        $this->assertSame( $expectedItems, $called1 );
+        $this->assertSame( $expectedItems2, $called2 );
+    }
+
+    /**
+     * @dataProvider getData
+     */
     public function testReturnObjects($data)
     {
         $expectedObj = new StdClass;

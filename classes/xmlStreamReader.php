@@ -4,6 +4,8 @@ class xmlStreamReader
     private $_callbacks        = array();
     private $_currentNamespace = '/';
     private $_namespaceData    = array();
+    private $_parse            = FALSE;
+    private $_xmlParser        = NULL;
 
     public function parse( $data, $chunkSize = 1024 )
     {
@@ -19,12 +21,15 @@ class xmlStreamReader
             throw new Exception( 'Chunk size must be an integer' );
         }
 
-        $parser = xml_parser_create();
+        $this->_init();
 
-        xml_set_object( $parser, $this );
-        xml_set_element_handler( $parser, '_start', '_end' );
-        xml_set_character_data_handler( $parser, '_data' ); 
-        xml_set_default_handler( $parser, '_data' );
+        $this->_parse     = TRUE;
+        $this->_xmlParser = xml_parser_create();
+
+        xml_set_object( $this->_xmlParser, $this );
+        xml_set_element_handler( $this->_xmlParser, '_start', '_end' );
+        xml_set_character_data_handler( $this->_xmlParser, '_data' );
+        xml_set_default_handler( $this->_xmlParser, '_data' );
 
         $obj             = new StdClass;
         $obj->data       = '';
@@ -35,17 +40,17 @@ class xmlStreamReader
         if ( is_resource( $data ) )
         {
             fseek( $data, 0 );
-            while( $chunk = fread($data, $chunkSize) )
+            while( $this->_parse && $chunk = fread($data, $chunkSize) )
             {
-                $this->_parseString( $parser, $chunk, feof($data) );
+                $this->_parseString( $chunk, feof($data) );
             }
         }
         else
         {
-            $this->_parseString( $parser, $data, TRUE );
+            $this->_parseString( $data, TRUE );
         }
         
-        xml_parser_free($parser);
+        xml_parser_free( $this->_xmlParser );
         return $this;
     }
 
@@ -80,14 +85,26 @@ class xmlStreamReader
         return $this;
     }
 
-    protected function _parseString( $parser, $data, $isFinal )
+    public function stopParsing()
     {
-        if (!xml_parse($parser, $data, $isFinal))
+        $this->_parse = FALSE;
+    }
+
+    private function _init()
+    {
+        $this->_currentNamespace = '/';
+        $this->_namespaceData    = array();
+        $this->_parse            = FALSE;
+    }
+
+    protected function _parseString( $data, $isFinal )
+    {
+        if (!xml_parse($this->_xmlParser, $data, $isFinal))
         {
             throw new Exception(
-                xml_error_string( xml_get_error_code( $parser ) )
+                xml_error_string( xml_get_error_code( $this->_xmlParser ) )
                 .' At line: '.
-                xml_get_current_line_number( $parser )
+                xml_get_current_line_number( $this->_xmlParser )
             );
         }
     }
@@ -120,6 +137,11 @@ class xmlStreamReader
 
         foreach( $this->_callbacks as $namespace => $callbacks )
         {
+            if ( !$this->_parse )
+            {
+                return;
+            }
+
             if ( strpos( $this->_currentNamespace, $namespace ) !== FALSE )
             {
                 foreach ( $callbacks as $key => $callback )
