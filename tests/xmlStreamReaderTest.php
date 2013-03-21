@@ -199,8 +199,10 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         $expectedObj->nodes['link']->data = 'http://www.guardian.co.uk/technology';
         $expectedObj->nodes['link']->attributes = array();
 
-        $callback = function( $parser, $actualObj ) use (&$passed, $expectedObj) {
-            $this->assertEquals( $expectedObj, $actualObj );
+        $test     = $this;
+        $callback = function( $parser, $actualObj )
+                        use (&$passed, $expectedObj, $test) {
+            $test->assertEquals( $expectedObj, $actualObj );
             $passed++;
         };
 
