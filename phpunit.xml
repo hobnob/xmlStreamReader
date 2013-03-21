@@ -12,9 +12,6 @@
     </testsuites>
 
     <filter>
-        <whitelist>
-            <directory>./</directory>
-        </whitelist>
         <blacklist>
             <directory>./tests</directory>
         </blacklist>
