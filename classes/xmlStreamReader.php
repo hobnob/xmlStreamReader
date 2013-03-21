@@ -13,7 +13,6 @@ class xmlStreamReader
     private $_currentNamespace = '/';
     private $_namespaceData    = array();
     private $_parse            = FALSE;
-    private $_xmlParser        = NULL;
 
     public function parse( $data, $chunkSize = 1024 )
     {
@@ -31,34 +30,28 @@ class xmlStreamReader
 
         $this->_init();
 
-        $this->_parse     = TRUE;
-        $this->_xmlParser = xml_parser_create();
+        $this->_parse = TRUE;
+        $parser       = xml_parser_create();
 
-        xml_set_object( $this->_xmlParser, $this );
-        xml_set_element_handler( $this->_xmlParser, '_start', '_end' );
-        xml_set_character_data_handler( $this->_xmlParser, '_data' );
-        xml_set_default_handler( $this->_xmlParser, '_data' );
-
-        $obj             = new StdClass;
-        $obj->data       = '';
-        $obj->attributes = array();
-
-        $this->_namespaceData['/'] = $obj;
+        xml_set_object( $parser, $this );
+        xml_set_element_handler( $parser, '_start', '_end' );
+        xml_set_character_data_handler( $parser, '_addCdata' );
+        xml_set_default_handler( $parser, '_addData' );
 
         if ( is_resource( $data ) )
         {
             fseek( $data, 0 );
             while( $this->_parse && $chunk = fread($data, $chunkSize) )
             {
-                $this->_parseString( $chunk, feof($data) );
+                $this->_parseString( $parser, $chunk, feof($data) );
             }
         }
         else
         {
-            $this->_parseString( $data, TRUE );
+            $this->_parseString( $parser, $data, TRUE );
         }
         
-        xml_parser_free( $this->_xmlParser );
+        xml_parser_free( $parser );
         return $this;
     }
 
@@ -74,7 +67,7 @@ class xmlStreamReader
             throw new Exception('Callback must be callable');
         }
 
-        $namespace = strtoupper($namespace);
+        $namespace = strtolower($namespace);
         if ( substr($namespace, -1, 1) !== '/' )
         {
             $namespace .= '/';
@@ -85,11 +78,7 @@ class xmlStreamReader
             $this->_callback[$namespace] = array();    
         }
 
-        $this->_callbacks[$namespace][] = array(
-            'data'     => new StdClass,
-            'callback' => $callback,
-        );
-
+        $this->_callbacks[$namespace][] = $callback;
         return $this;
     }
 
@@ -105,92 +94,86 @@ class xmlStreamReader
         $this->_parse            = FALSE;
     }
 
-    protected function _parseString( $data, $isFinal )
+    protected function _parseString( $parser, $data, $isFinal )
     {
-        if (!xml_parse($this->_xmlParser, $data, $isFinal))
+        if (!xml_parse($parser, $data, $isFinal))
         {
             throw new Exception(
-                xml_error_string( xml_get_error_code( $this->_xmlParser ) )
+                xml_error_string( xml_get_error_code( $parser ) )
                 .' At line: '.
-                xml_get_current_line_number( $this->_xmlParser )
+                xml_get_current_line_number( $parser )
             );
         }
     }
 
     protected function _start( $parser, $tag, $attributes )
     {
+        $tag = strtolower($tag);
         $this->_currentNamespace .= $tag.'/';
-
-        $obj             = new StdClass;
-        $obj->data       = '';
-        $obj->attributes = array();
-
-        foreach ( $attributes as $key => $val )
+        foreach( $this->_callbacks as $namespace => $callbacks )
         {
-            $obj->attributes[strtolower($key)] = $val;
+            if ( $namespace === $this->_currentNamespace )
+            {
+                $this->_namespaceData[ $this->_currentNamespace ] = '';
+            }
         }
 
-        $this->_namespaceData[$this->_currentNamespace] = $obj;
+        $data = '<'.$tag;
+        foreach ( $attributes as $key => $val )
+        {
+            $data .= ' '.strtolower($key).'="'.$val.'"';
+        }
+        $data .= '>';
+
+        $this->_addData( $parser, $data );
     }
 
-    protected function _data( $parser, $data )
+    protected function _addCdata( $parser, $data )
     {
-        $this->_namespaceData[$this->_currentNamespace]->data .= $data;
+        if ( trim($data) )
+        {
+            $this->_addData( $parser, '<![CDATA['.$data.']]>');
+        }
+    }
+
+    protected function _addData( $parser, $data )
+    {
+        foreach ($this->_namespaceData as $key => $val)
+        {
+            if ( strpos($this->_currentNamespace, $key) !== FALSE )
+            {
+                $this->_namespaceData[$key] .= $data;
+            }
+        }
     }
 
     protected function _end( $parser, $tag )
     {
-        $namespaceParts = explode(
-            '/', trim( strtolower($this->_currentNamespace), '/' ) );
+        $tag = strtolower($tag);
+        $data = '</'.$tag.'>';
+        $this->_addData( $parser, $data );
 
         foreach( $this->_callbacks as $namespace => $callbacks )
         {
-            if ( !$this->_parse )
+            if ( $this->_parse && $this->_currentNamespace === $namespace )
             {
-                return;
-            }
+                $data = new SimpleXMLElement(
+                    $this->_namespaceData[ $namespace ], LIBXML_NOERROR
+                );
 
-            if ( strpos( $this->_currentNamespace, $namespace ) !== FALSE )
-            {
-                foreach ( $callbacks as $key => $callback )
+                foreach ( $callbacks as $callback )
                 {
-                    $obj = $callback['data'];
-                    foreach ( $namespaceParts as $part )
+                    call_user_func_array( $callback, array($this, $data) );
+
+                    if ( !$this->_parse )
                     {
-                        if ( !isset( $obj->nodes ) )
-                        {
-                            $obj->nodes = array();
-                        }
-
-                        if ( !isset( $obj->nodes[$part] ) )
-                        {
-                            $obj->nodes[$part] = new StdClass;
-                        }
-
-                        $obj = $obj->nodes[$part];
-                    }
-
-                    $obj->data =
-                        trim($this->_namespaceData[$this->_currentNamespace]->data);
-
-                    $obj->attributes =
-                        $this->_namespaceData[$this->_currentNamespace]->attributes;
-
-                    if ( $namespace === $this->_currentNamespace )
-                    {
-                        //Find part of the object that is referenced by the
-                        //namespace
-                        call_user_func_array(
-                            $callback['callback'], array($this, $obj)
-                        );
-
-                        $callback['data'] = new StdClass;
+                        return;
                     }
                 }
             }
         }
 
-        unset( $this->_namespaceData[$this->_currentNamespace] );
+        unset( $this->_namespaceData[ $this->_currentNamespace ] );
         $this->_currentNamespace = substr(
             $this->_currentNamespace,
             0,
