@@ -206,26 +206,17 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
      */
     public function testReturnObjects($data)
     {
-        $expectedObj = new StdClass;
         $passed      = 0;
         $xmlParser   = new xmlStreamReader();
 
-        $expectedObj->attributes = array();
-        $expectedObj->data       = '';
-        $expectedObj->nodes      = array(
-            'title' => new StdClass,
-            'url'   => new StdClass,
-            'link'  => new StdClass,
-        );
 
-        $expectedObj->nodes['title']->data = 'Technology news, comment and analysis | guardian.co.uk';
-        $expectedObj->nodes['title']->attributes = array();
-
-        $expectedObj->nodes['url']->data = 'http://image.guardian.co.uk/sitecrumbs/Guardian.gif';
-        $expectedObj->nodes['url']->attributes = array();
-
-        $expectedObj->nodes['link']->data = 'http://www.guardian.co.uk/technology';
-        $expectedObj->nodes['link']->attributes = array();
+        $expectedObj = new SimpleXmlElement("
+            <image>
+                <title>Technology news, comment and analysis | guardian.co.uk</title>
+                <url>http://image.guardian.co.uk/sitecrumbs/Guardian.gif</url>
+                <link>http://www.guardian.co.uk/technology</link>
+            </image>
+        ");
 
         $test     = $this;
         $callback = function( $parser, $actualObj )
