@@ -1,0 +1,20 @@
+<phpunit bootstrap="bootstrap.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         strict="true"
+         verbose="false"
+         bootstrap="tests/bootstrap.php">
+    <testsuites>
+        <testsuite name="xmlStreamReader Tests">
+            <directory>./tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory>./</directory>
+        </whitelist>
+    </filter>
+</phpunit>
