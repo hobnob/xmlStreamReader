@@ -14,9 +14,9 @@ Declare xmlStreamReader as a dependency in your projects `composer.json` file:
 
 ``` json
 {
-  "require": {
-    "hobnob/xmlStreamReader": "1.0.0"
-  }
+    "require": {
+      "hobnob/xmlStreamReader": "1.0.0"
+    }
 }
 ```
 
