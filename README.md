@@ -31,7 +31,7 @@ require_once('classes/xmlStreamReader.php');
 
 $xmlParser = new xmlStreamReader();
 $file      = fopen('file.xml', 'r');
-$callback  = function( xmlStreamReader $parser, StdClass $node ) {
+$callback  = function( xmlStreamReader $parser, SimpleXMLElement $node ) {
     print_r( $node );
 };
 
