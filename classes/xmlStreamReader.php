@@ -12,22 +12,22 @@ class xmlStreamReader
     /**
      * @var array An array of registered callbacks
      */
-    private $_callbacks = array();
+    private $callbacks = array();
 
     /**
      * @var string The current node path being investigated
      */
-    private $_currentPath = '/';
+    private $currentPath = '/';
 
     /**
      * @var array An array path data for paths that require callbacks
      */
-    private $_pathData = array();
+    private $pathData = array();
 
     /**
      * @var boolean Whether or not the object is currently parsing
      */
-    private $_parse = FALSE;
+    private $parse = FALSE;
 
     /**
      * Parses the XML provided using streaming and callbacks
@@ -56,10 +56,10 @@ class xmlStreamReader
         }
 
         //Initialise the object
-        $this->_init();
+        $this->init();
 
         //Create the parser and set the parsing flag
-        $this->_parse = TRUE;
+        $this->parse = TRUE;
         $parser       = xml_parser_create();
 
         //Set the parser up, ready to stream through the XML
@@ -67,27 +67,27 @@ class xmlStreamReader
 
         //Set up the protected methods _start and _end to deal with the start
         //and end tags respectively
-        xml_set_element_handler( $parser, '_start', '_end' );
+        xml_set_element_handler( $parser, 'start', 'end' );
 
         //Set up the _addCdata method to parse any CDATA tags
-        xml_set_character_data_handler( $parser, '_addCdata' );
+        xml_set_character_data_handler( $parser, 'addCdata' );
 
         //For general purpose data, use the _addData method
-        xml_set_default_handler( $parser, '_addData' );
+        xml_set_default_handler( $parser, 'addData' );
 
         //If the data is a resource then loop through it, otherwise just parse
         //the string
         if ( is_resource( $data ) )
         {
             fseek( $data, 0 );
-            while( $this->_parse && $chunk = fread($data, $chunkSize) )
+            while( $this->parse && $chunk = fread($data, $chunkSize) )
             {
-                $this->_parseString( $parser, $chunk, feof($data) );
+                $this->parseString( $parser, $chunk, feof($data) );
             }
         }
         else
         {
-            $this->_parseString( $parser, $data, TRUE );
+            $this->parseString( $parser, $data, TRUE );
         }
 
         //Free up the parser
@@ -109,7 +109,7 @@ class xmlStreamReader
         //Ensure the path is a string
         if ( !is_string( $path ) )
         {
-            throw new Exception('Namespace must be a string');
+            throw new Exception('Path must be a string');
         }
 
         //Ensure that the callback is callable
@@ -126,13 +126,13 @@ class xmlStreamReader
         }
 
         //If this is the first callback for this path, initialise the variable
-        if ( !isset( $this->_callbacks[$path] ) )
+        if ( !isset( $this->callbacks[$path] ) )
         {
-            $this->_callback[$path] = array();    
+            $this->callback[$path] = array();
         }
 
         //Add the callback
-        $this->_callbacks[$path][] = $callback;
+        $this->callbacks[$path][] = $callback;
         return $this;
     }
 
@@ -145,7 +145,7 @@ class xmlStreamReader
      */
     public function stopParsing()
     {
-        $this->_parse = FALSE;
+        $this->parse = FALSE;
         return $this;
     }
 
@@ -154,11 +154,11 @@ class xmlStreamReader
      *
      * @return NULL
      */
-    private function _init()
+    private function init()
     {
-        $this->_currentPath = '/';
-        $this->_pathData    = array();
-        $this->_parse       = FALSE;
+        $this->currentPath = '/';
+        $this->pathData    = array();
+        $this->parse       = FALSE;
     }
 
     /**
@@ -171,7 +171,7 @@ class xmlStreamReader
      * @return NULL
      * @throws Exception
      */
-    protected function _parseString( $parser, $data, $isFinal )
+    protected function parseString( $parser, $data, $isFinal )
     {
         if (!xml_parse($parser, $data, $isFinal))
         {
@@ -192,21 +192,21 @@ class xmlStreamReader
      *
      * @return NULL
      */
-    protected function _start( $parser, $tag, $attributes )
+    protected function start( $parser, $tag, $attributes )
     {
         //Set the tag as lower case, for consistency
         $tag = strtolower($tag);
 
         //Update the current path
-        $this->_currentPath .= $tag.'/';
+        $this->currentPath .= $tag.'/';
 
         //Go through each callback and ensure that path data has been
         //started for it
-        foreach( $this->_callbacks as $namespace => $callbacks )
+        foreach( $this->callbacks as $path => $callbacks )
         {
-            if ( $namespace === $this->_currentPath )
+            if ( $path === $this->currentPath )
             {
-                $this->_pathData[ $this->_currentPath ] = '';
+                $this->pathData[ $this->currentPath ] = '';
             }
         }
 
@@ -220,7 +220,7 @@ class xmlStreamReader
         $data .= '>';
 
         //Add the data to the path data required
-        $this->_addData( $parser, $data );
+        $this->addData( $parser, $data );
     }
 
     /**
@@ -231,9 +231,9 @@ class xmlStreamReader
      *
      * @return NULL
      */
-    protected function _addCdata( $parser, $data )
+    protected function addCdata( $parser, $data )
     {
-        $this->_addData( $parser, '<![CDATA['.$data.']]>');
+        $this->addData( $parser, '<![CDATA['.$data.']]>');
     }
 
     /**
@@ -244,16 +244,16 @@ class xmlStreamReader
      *
      * @return NULL
      */
-    protected function _addData( $parser, $data )
+    protected function addData( $parser, $data )
     {
         //Having a path data entry means at least 1 callback is interested in
         //the data. Loop through each path here and, if inside that path, add
         //the data
-        foreach ($this->_pathData as $key => $val)
+        foreach ($this->pathData as $key => $val)
         {
-            if ( strpos($this->_currentPath, $key) !== FALSE )
+            if ( strpos($this->currentPath, $key) !== FALSE )
             {
-                $this->_pathData[$key] .= $data;
+                $this->pathData[$key] .= $data;
             }
         }
     }
@@ -266,28 +266,28 @@ class xmlStreamReader
      *
      * @return NULL
      */
-    protected function _end( $parser, $tag )
+    protected function end( $parser, $tag )
     {
         //Make the tag lower case, for consistency
         $tag = strtolower($tag);
 
         //Add the data to the paths that require it
         $data = '</'.$tag.'>';
-        $this->_addData( $parser, $data );
+        $this->addData( $parser, $data );
 
         //Loop through each callback and see if the path matches the
         //current path
-        foreach( $this->_callbacks as $path => $callbacks )
+        foreach( $this->callbacks as $path => $callbacks )
         {
             //If parsing should continue, and the paths match, then a callback
             //needs to be made
-            if ( $this->_parse && $this->_currentPath === $path )
+            if ( $this->parse && $this->currentPath === $path )
             {
                 //Build the SimpleXMLElement object. As this is a partial XML
                 //document suppress any warnings or errors that might arise
                 //from invalid namespaces
                 $data = new SimpleXMLElement(
-                    $this->_pathData[ $path ],
+                    $this->pathData[ $path ],
                     LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
                 );
 
@@ -297,7 +297,7 @@ class xmlStreamReader
                 {
                     call_user_func_array( $callback, array($this, $data) );
 
-                    if ( !$this->_parse )
+                    if ( !$this->parse )
                     {
                         break 2;
                     }
@@ -306,13 +306,13 @@ class xmlStreamReader
         }
 
         //Unset the path data for this path, as it's no longer needed
-        unset( $this->_pathData[ $this->_currentPath ] );
+        unset( $this->pathData[ $this->currentPath ] );
 
         //Update the path with the new path (effectively moving up a directory)
-        $this->_currentPath = substr(
-            $this->_currentPath,
+        $this->currentPath = substr(
+            $this->currentPath,
             0,
-            strlen($this->_currentPath) - (strlen($tag) + 1)
+            strlen($this->currentPath) - (strlen($tag) + 1)
         );
     }
 }

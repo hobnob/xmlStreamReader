@@ -51,11 +51,11 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         $xmlParser->parse('<xml><unclosedTag>data</xml>');
     }
 
-    public function testInvalidNamespace()
+    public function testInvalidPath()
     {
         $xmlParser = new xmlStreamReader();
         $this->setExpectedException(
-            'Exception', 'Namespace must be a string'
+            'Exception', 'Path must be a string'
         );
 
         $xmlParser->registerCallback(1234, function() {});
@@ -149,7 +149,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider getData
      */
-    public function testMultipleNamespaces( $data )
+    public function testMultiplePaths( $data )
     {
         $called1        = 0;
         $called2        = 0;
