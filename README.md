@@ -26,7 +26,7 @@ Usage Example
 ```php
 <?php
 
-$xmlParser = new xmlStreamReader();
+$xmlParser = new \Hobnob\Stream\Xml\Reader();
 
 $xmlParser->registerCallback(
     '/xml/node/path',

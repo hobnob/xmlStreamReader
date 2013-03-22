@@ -1,7 +1,8 @@
 <?php
-class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
-{
+use \Hobnob\XmlStreamReader;
 
+class xmlReaderTest extends PHPUnit_Framework_TestCase
+{
     public function getData()
     {
         return array(
@@ -12,7 +13,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 
     public function testNonStringParse()
     {
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
         $this->setExpectedException(
             'Exception', 'Data must be a string or a stream resource'
         );
@@ -23,7 +24,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
     public function testInvalidResourceParse()
     {
         $resource  = xml_parser_create();
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
         $this->setExpectedException(
             'Exception', 'Data must be a string or a stream resource'
         );
@@ -33,7 +34,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidChunkSize()
     {
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
         $this->setExpectedException(
             'Exception', 'Chunk size must be an integer'
         );
@@ -43,7 +44,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidXml()
     {
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
         $this->setExpectedException(
             'Exception', 'Mismatched tag'
         );
@@ -53,7 +54,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidPath()
     {
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
         $this->setExpectedException(
             'Exception', 'Path must be a string'
         );
@@ -63,7 +64,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidFunction()
     {
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
         $this->setExpectedException(
             'Exception', 'Callback must be callable'
         );
@@ -76,7 +77,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
      */
     public function testReturnValue( $data )
     {
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
 
         $this->assertSame( $xmlParser, $xmlParser->parse($data) );
         $this->assertSame( $xmlParser, $xmlParser->parse($data), 2000 );
@@ -88,7 +89,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
     public function testSingleCallback( $data )
     {
         $passed    = FALSE;
-        $xmlParser = new xmlStreamReader();
+        $xmlParser = new XmlStreamReader\Parser();
 
         $callback = function() use (&$passed) {
             $passed = TRUE;
@@ -107,7 +108,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
     {
         $called        = 0;
         $expectedItems = 25;
-        $xmlParser     = new xmlStreamReader();
+        $xmlParser     = new XmlStreamReader\Parser();
 
         $callback = function() use (&$called) {
             $called++;
@@ -127,7 +128,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         $called1       = 0;
         $called2       = 0;
         $expectedItems = 50;
-        $xmlParser     = new xmlStreamReader();
+        $xmlParser     = new XmlStreamReader\Parser();
 
         $callback = function() use (&$called1) {
             $called1++;
@@ -155,7 +156,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         $called2        = 0;
         $expectedItems  = 25;
         $expectedItems2 = 240;
-        $xmlParser      = new xmlStreamReader();
+        $xmlParser      = new XmlStreamReader\Parser();
 
         $callback = function() use (&$called1) {
             $called1++;
@@ -182,7 +183,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
         $called2        = 0;
         $expectedItems  = 1;
         $expectedItems2 = 8;
-        $xmlParser      = new xmlStreamReader();
+        $xmlParser      = new XmlStreamReader\Parser();
 
         $callback = function($parser) use (&$called1) {
             $called1++;
@@ -207,7 +208,7 @@ class xmlStreamReaderTest extends PHPUnit_Framework_TestCase
     public function testReturnObjects($data)
     {
         $passed      = 0;
-        $xmlParser   = new xmlStreamReader();
+        $xmlParser   = new XmlStreamReader\Parser();
 
 
         $expectedObj = new SimpleXmlElement("
