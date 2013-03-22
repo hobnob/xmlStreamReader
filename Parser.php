@@ -4,10 +4,12 @@
  * specified element is found
  *
  * @author David North
- * @package xmlStreamReader
+ * @package Stream
+ * @package Stream\Xml
  * @license http://opensource.org/licenses/mit-license.php
  */
-class xmlStreamReader
+namespace Hobnob\XmlStreamReader;
+class Parser
 {
     /**
      * @var array An array of registered callbacks
@@ -46,13 +48,13 @@ class xmlStreamReader
             && ( !is_resource( $data ) || get_resource_type($data) !== 'stream' )
         )
         {
-            throw new Exception( 'Data must be a string or a stream resource' );
+            throw new \Exception( 'Data must be a string or a stream resource' );
         }
 
         //Ensure $chunkSize is the right type
         if ( !is_int( $chunkSize ) )
         {
-            throw new Exception( 'Chunk size must be an integer' );
+            throw new \Exception( 'Chunk size must be an integer' );
         }
 
         //Initialise the object
@@ -109,13 +111,13 @@ class xmlStreamReader
         //Ensure the path is a string
         if ( !is_string( $path ) )
         {
-            throw new Exception('Path must be a string');
+            throw new \Exception('Path must be a string');
         }
 
         //Ensure that the callback is callable
         if ( !is_callable( $callback ) )
         {
-            throw new Exception('Callback must be callable');
+            throw new \Exception('Callback must be callable');
         }
 
         //All tags and paths are lower cased, for consistency
@@ -175,7 +177,7 @@ class xmlStreamReader
     {
         if (!xml_parse($parser, $data, $isFinal))
         {
-            throw new Exception(
+            throw new \Exception(
                 xml_error_string( xml_get_error_code( $parser ) )
                 .' At line: '.
                 xml_get_current_line_number( $parser )
@@ -286,7 +288,7 @@ class xmlStreamReader
                 //Build the SimpleXMLElement object. As this is a partial XML
                 //document suppress any warnings or errors that might arise
                 //from invalid namespaces
-                $data = new SimpleXMLElement(
+                $data = new \SimpleXMLElement(
                     $this->pathData[ $path ],
                     LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
                 );
