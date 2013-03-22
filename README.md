@@ -14,9 +14,9 @@ Declare xmlStreamReader as a dependency in your projects `composer.json` file:
 
 ``` json
 {
-  "require": {
-    "hobnob/xmlStreamReader": "dev-master"
-  }
+    "require": {
+      "hobnob/xmlStreamReader": "1.0.0"
+    }
 }
 ```
 
@@ -26,17 +26,15 @@ Usage Example
 ```php
 <?php
 
-// If you aren't using composer, load xmlStreamReader
-require_once('classes/xmlStreamReader.php');
-
 $xmlParser = new xmlStreamReader();
-$file      = fopen('file.xml', 'r');
-$callback  = function( xmlStreamReader $parser, SimpleXMLElement $node ) {
-    print_r( $node );
-};
 
-$xmlParser->registerCallback('/xml/node/path', $callback);
-$xmlParser->parse($file);
+$xmlParser->registerCallback(
+    '/xml/node/path',
+    function( xmlStreamReader $parser, SimpleXMLElement $node ) {
+        // do stuff with $node
+    }
+);
+$xmlParser->parse(fopen('file.xml', 'r'));
 ```
 
 Contributors
