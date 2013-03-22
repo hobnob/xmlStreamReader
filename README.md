@@ -26,11 +26,11 @@ Usage Example
 ```php
 <?php
 
-$xmlParser = new \Hobnob\Stream\Xml\Reader();
+$xmlParser = new \Hobnob\XmlStreamReader\Parser();
 
 $xmlParser->registerCallback(
     '/xml/node/path',
-    function( xmlStreamReader $parser, SimpleXMLElement $node ) {
+    function( \Hobnob\XmlStreamReader\Parser $parser, \SimpleXMLElement $node ) {
         // do stuff with $node
     }
 );
