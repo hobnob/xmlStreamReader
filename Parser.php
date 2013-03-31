@@ -38,7 +38,7 @@ class Parser
      * @param int $chunkSize The size of data to read in at a time. Only
      * relevant if $data is a stream
      *
-     * @return xmlStreamReader
+     * @return Parser
      * @throws Exception
      */
     public function parse( $data, $chunkSize = 1024 )
@@ -98,12 +98,12 @@ class Parser
     }
 
     /**
-     * Registers a callback for a specified XML path
+     * Registers a single callback for a specified XML path
      *
      * @param string $path The path that the callback is for
      * @param function $callback The callback mechanism to use
      *
-     * @return xmlStreamReader
+     * @return Parser
      * @throws Exception
      */
     public function registerCallback( $path, $callback )
@@ -139,11 +139,44 @@ class Parser
     }
 
     /**
+     * Registers multiple callbacks for the specified paths, for example
+     * <code>
+     *  $parser->registerCallbacks(array(
+     *      array( '/path/to/element', 'callback' ),
+     *      array( '/path/to/another/element', array($this, 'callback' ) ),
+     *  ));
+     * </code>
+     *
+     * @param Array $pathCallbacks An array of paths and callbacks
+     *
+     * @return Parser
+     * @throws Exception
+     */
+    public function registerCallbacks( Array $pathCallbacks )
+    {
+        foreach ( $pathCallbacks as $row )
+        {
+            if ( count($row) != 2 )
+            {
+                throw new \Exception(
+                    'Each array element in $pathCallbacks must be an array of'
+                    .' 2 elements (the path and the callback)'
+                );
+            }
+
+            list( $path, $callback ) = $row;
+            $this->registerCallback( $path, $callback );
+        }
+
+        return $this;
+    }
+
+    /**
      * Stops the parser from parsing any more. Because of the nature of
      * streaming there may be more data to read. If this is the case then no
      * further callbacks will be called.
      *
-     * @return xmlStreamReader
+     * @return Parser
      */
     public function stopParsing()
     {
