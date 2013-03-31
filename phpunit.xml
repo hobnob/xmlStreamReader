@@ -6,7 +6,7 @@
          verbose="false"
          bootstrap="tests/bootstrap.php">
     <testsuites>
-        <testsuite name="xmlStreamReader Tests">
+        <testsuite name="Parser Tests">
             <directory>./tests</directory>
         </testsuite>
     </testsuites>

@@ -1,7 +1,7 @@
 <?php
-use \Hobnob\XmlStreamReader;
+use \Hobnob\XmlStreamReader\Parser;
 
-class xmlReaderTest extends PHPUnit_Framework_TestCase
+class ParserTest extends PHPUnit_Framework_TestCase
 {
     public function getData()
     {
@@ -13,7 +13,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
 
     public function testNonStringParse()
     {
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
         $this->setExpectedException(
             'Exception', 'Data must be a string or a stream resource'
         );
@@ -24,7 +24,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
     public function testInvalidResourceParse()
     {
         $resource  = xml_parser_create();
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
         $this->setExpectedException(
             'Exception', 'Data must be a string or a stream resource'
         );
@@ -34,7 +34,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidChunkSize()
     {
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
         $this->setExpectedException(
             'Exception', 'Chunk size must be an integer'
         );
@@ -44,7 +44,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidXml()
     {
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
         $this->setExpectedException(
             'Exception', 'Mismatched tag'
         );
@@ -54,7 +54,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidPath()
     {
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
         $this->setExpectedException(
             'Exception', 'Path must be a string'
         );
@@ -64,7 +64,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidFunction()
     {
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
         $this->setExpectedException(
             'Exception', 'Callback must be callable'
         );
@@ -77,7 +77,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
      */
     public function testReturnValue( $data )
     {
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
 
         $this->assertSame( $xmlParser, $xmlParser->parse($data) );
         $this->assertSame( $xmlParser, $xmlParser->parse($data), 2000 );
@@ -89,7 +89,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
     public function testSingleCallback( $data )
     {
         $passed    = FALSE;
-        $xmlParser = new XmlStreamReader\Parser();
+        $xmlParser = new Parser();
 
         $callback = function() use (&$passed) {
             $passed = TRUE;
@@ -108,7 +108,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
     {
         $called        = 0;
         $expectedItems = 25;
-        $xmlParser     = new XmlStreamReader\Parser();
+        $xmlParser     = new Parser();
 
         $callback = function() use (&$called) {
             $called++;
@@ -128,7 +128,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
         $called1       = 0;
         $called2       = 0;
         $expectedItems = 50;
-        $xmlParser     = new XmlStreamReader\Parser();
+        $xmlParser     = new Parser();
 
         $callback = function() use (&$called1) {
             $called1++;
@@ -156,7 +156,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
         $called2        = 0;
         $expectedItems  = 25;
         $expectedItems2 = 240;
-        $xmlParser      = new XmlStreamReader\Parser();
+        $xmlParser      = new Parser();
 
         $callback = function() use (&$called1) {
             $called1++;
@@ -177,13 +177,50 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider getData
      */
+    public function testRegisterCallbacksMethod( $data )
+    {
+        $called1        = 0;
+        $called2        = 0;
+        $expectedItems  = 25;
+        $expectedItems2 = 240;
+        $xmlParser      = new Parser();
+
+        $callback = function() use (&$called1) {
+            $called1++;
+        };
+
+        $callback2 = function() use (&$called2) {
+            $called2++;
+        };
+
+        $xmlParser->registerCallbacks(
+            array(
+                array('/rss/channel/item', $callback),
+                array('/rss/channel/item/category', $callback2),
+        ));
+
+        $xmlParser->parse($data);
+
+        $this->assertSame( $expectedItems, $called1 );
+        $this->assertSame( $expectedItems2, $called2 );
+
+        $this->setExpectedException('Exception', 'must be an array of 2');
+        $xmlParser->registerCallbacks(
+            array(
+                array('/rss/channel/item'),
+        ));
+    }
+
+    /**
+     * @dataProvider getData
+     */
     public function testStopParsing( $data )
     {
         $called1        = 0;
         $called2        = 0;
         $expectedItems  = 1;
         $expectedItems2 = 8;
-        $xmlParser      = new XmlStreamReader\Parser();
+        $xmlParser      = new Parser();
 
         $callback = function($parser) use (&$called1) {
             $called1++;
@@ -208,7 +245,7 @@ class xmlReaderTest extends PHPUnit_Framework_TestCase
     public function testReturnObjects($data)
     {
         $passed      = 0;
-        $xmlParser   = new XmlStreamReader\Parser();
+        $xmlParser   = new Parser();
 
 
         $expectedObj = new SimpleXmlElement("
