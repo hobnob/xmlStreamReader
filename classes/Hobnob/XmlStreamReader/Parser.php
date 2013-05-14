@@ -81,7 +81,10 @@ class Parser
         //the string
         if ( is_resource( $data ) )
         {
-            fseek( $data, 0 );
+            //Not all resources support fseek. For those that don't, suppress
+            // /the error
+            @fseek( $data, 0 );
+
             while( $this->parse && $chunk = fread($data, $chunkSize) )
             {
                 $this->parseString( $parser, $chunk, feof($data) );
@@ -250,6 +253,7 @@ class Parser
         $data = '<'.$tag;
         foreach ( $attributes as $key => $val )
         {
+            $val   = htmlentities($val, ENT_QUOTES, "UTF-8");
             $data .= ' '.strtolower($key).'="'.$val.'"';
         }
         $data .= '>';
