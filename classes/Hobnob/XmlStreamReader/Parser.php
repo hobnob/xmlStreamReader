@@ -32,6 +32,11 @@ class Parser
     private $parse = FALSE;
 
     /**
+     * @var array A list of namespaces in this XML
+     */
+    private $namespaces = [];
+
+    /**
      * Parses the XML provided using streaming and callbacks
      *
      * @param mixed $data Either a stream resource or string containing XML
@@ -62,7 +67,7 @@ class Parser
 
         //Create the parser and set the parsing flag
         $this->parse = TRUE;
-        $parser       = xml_parser_create();
+        $parser      = xml_parser_create();
 
         //Set the parser up, ready to stream through the XML
         xml_set_object( $parser, $this );
@@ -194,6 +199,7 @@ class Parser
      */
     private function init()
     {
+        $this->namespaces  = [];
         $this->currentPath = '/';
         $this->pathData    = array();
         $this->parse       = FALSE;
@@ -253,8 +259,14 @@ class Parser
         $data = '<'.$tag;
         foreach ( $attributes as $key => $val )
         {
-            $val   = htmlentities($val, ENT_QUOTES, "UTF-8");
+            $val   = htmlentities($val, ENT_QUOTES | ENT_XML1, "UTF-8");
             $data .= ' '.strtolower($key).'="'.$val.'"';
+
+            if (stripos($key, 'xmlns:') !== false) {
+                $key = strtolower($key);
+                $key = str_replace('xmlns:', '', $key);
+                $this->namespaces[strtolower($key)] = $val;
+            }
         }
         $data .= '>';
 
@@ -322,11 +334,17 @@ class Parser
             //needs to be made
             if ( $this->parse && $this->currentPath === $path )
             {
+                $root = '<xml';
+                foreach ($this->namespaces as $key => $val) {
+                    $root .= ' xmlns:'.$key.'="'.$val.'"';
+                }
+                $root .= '>';
+
                 //Build the SimpleXMLElement object. As this is a partial XML
                 //document suppress any warnings or errors that might arise
                 //from invalid namespaces
                 $data = new \SimpleXMLElement(
-                    $this->pathData[ $path ],
+                    $root.$this->pathData[ $path ].'</xml>',
                     LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
                 );
 
@@ -334,7 +352,7 @@ class Parser
                 //then cease operation immediately
                 foreach ( $callbacks as $callback )
                 {
-                    call_user_func_array( $callback, array($this, $data) );
+                    call_user_func_array( $callback, [$this, $data->children()->children()] );
 
                     if ( !$this->parse )
                     {
