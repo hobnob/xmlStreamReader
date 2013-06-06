@@ -259,7 +259,12 @@ class Parser
         $data = '<'.$tag;
         foreach ( $attributes as $key => $val )
         {
-            $val   = htmlentities($val, ENT_QUOTES | ENT_XML1, "UTF-8");
+            $options = ENT_QUOTES;
+            if (defined(ENT_XML1)) {
+                $options |= ENT_XML1;
+            }
+
+            $val   = htmlentities($val, $options, "UTF-8");
             $data .= ' '.strtolower($key).'="'.$val.'"';
 
             if (stripos($key, 'xmlns:') !== false) {
