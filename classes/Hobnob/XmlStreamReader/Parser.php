@@ -260,7 +260,7 @@ class Parser
         foreach ( $attributes as $key => $val )
         {
             $options = ENT_QUOTES;
-            if (defined(ENT_XML1)) {
+            if (defined('ENT_XML1')) {
                 $options |= ENT_XML1;
             }
 
