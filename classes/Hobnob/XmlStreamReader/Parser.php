@@ -34,7 +34,7 @@ class Parser
     /**
      * @var array A list of namespaces in this XML
      */
-    private $namespaces = [];
+    private $namespaces = array();
 
     /**
      * Parses the XML provided using streaming and callbacks
@@ -199,7 +199,7 @@ class Parser
      */
     private function init()
     {
-        $this->namespaces  = [];
+        $this->namespaces  = array();
         $this->currentPath = '/';
         $this->pathData    = array();
         $this->parse       = FALSE;
@@ -352,7 +352,7 @@ class Parser
                 //then cease operation immediately
                 foreach ( $callbacks as $callback )
                 {
-                    call_user_func_array( $callback, array($this, $data->children()->children()) );
+                     call_user_func_array( $callback, array($this, $data->children()->children()) );
 
                     if ( !$this->parse )
                     {
