@@ -352,7 +352,7 @@ class Parser
                 //then cease operation immediately
                 foreach ( $callbacks as $callback )
                 {
-                    call_user_func_array( $callback, [$this, $data->children()->children()] );
+                    call_user_func_array( $callback, array($this, $data->children()->children()) );
 
                     if ( !$this->parse )
                     {
