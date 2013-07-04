@@ -44,7 +44,7 @@ class Parser
      * relevant if $data is a stream
      *
      * @return Parser
-     * @throws Exception
+     * @throws \Exception
      */
     public function parse( $data, $chunkSize = 1024 )
     {
@@ -109,10 +109,10 @@ class Parser
      * Registers a single callback for a specified XML path
      *
      * @param string $path The path that the callback is for
-     * @param function $callback The callback mechanism to use
+     * @param callable $callback The callback mechanism to use
      *
      * @return Parser
-     * @throws Exception
+     * @throws \Exception
      */
     public function registerCallback( $path, $callback )
     {
@@ -158,7 +158,7 @@ class Parser
      * @param Array $pathCallbacks An array of paths and callbacks
      *
      * @return Parser
-     * @throws Exception
+     * @throws \Exception
      */
     public function registerCallbacks( Array $pathCallbacks )
     {
@@ -213,7 +213,7 @@ class Parser
      * @param boolean $isFinal Whether or not this is the final part to parse
      *
      * @return NULL
-     * @throws Exception
+     * @throws \Exception
      */
     protected function parseString( $parser, $data, $isFinal )
     {
