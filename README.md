@@ -2,6 +2,8 @@ xmlStreamReader
 ===============
 
 [![Build Status](https://travis-ci.org/hobnob/xmlStreamReader.png?branch=master)](https://travis-ci.org/hobnob/xmlStreamReader)
+[![Latest Stable Version](https://poser.pugx.org/hobnob/xml-stream-reader/v/stable.png)](https://packagist.org/packages/hobnob/xml-stream-reader)
+[![Montly Downloads](https://poser.pugx.org/hobnob/xml-stream-reader/d/monthly.png)](https://packagist.org/packages/hobnob/xml-stream-reader)
 
 ##PHP XML Stream Reader
 
