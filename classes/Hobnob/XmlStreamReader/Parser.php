@@ -339,30 +339,9 @@ class Parser
             //needs to be made
             if ( $this->parse && $this->currentPath === $path )
             {
-                $root = '<xml';
-                foreach ($this->namespaces as $key => $val) {
-                    $root .= ' xmlns:'.$key.'="'.$val.'"';
-                }
-                $root .= '>';
-
-                //Build the SimpleXMLElement object. As this is a partial XML
-                //document suppress any warnings or errors that might arise
-                //from invalid namespaces
-                $data = new \SimpleXMLElement(
-                    $root.$this->pathData[ $path ].'</xml>',
-                    LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
-                );
-
-                //Loop through each callback. If one of them stops the parsing
-                //then cease operation immediately
-                foreach ( $callbacks as $callback )
+                if( !$this->fireCallbacks( $path, $callbacks ) )
                 {
-                     call_user_func_array( $callback, array($this, $data->children()->children()) );
-
-                    if ( !$this->parse )
-                    {
-                        break 2;
-                    }
+                    break;
                 }
             }
         }
@@ -376,5 +355,44 @@ class Parser
             0,
             strlen($this->currentPath) - (strlen($tag) + 1)
         );
+    }
+
+    /**
+     * Generates a SimpleXMLElement and passes it to each of the callbacks
+     *
+     * @param  string  $path        The path to create the SimpleXMLElement from
+     * @param  array   $callbacks   An array of callbacks to be fired.
+     *
+     * @return boolean
+     */
+    protected function fireCallbacks( $path, array $callbacks )
+    {
+        $root = '<xml';
+        foreach ($this->namespaces as $key => $val) {
+            $root .= ' xmlns:'.$key.'="'.$val.'"';
+        }
+        $root .= '>';
+
+        //Build the SimpleXMLElement object. As this is a partial XML
+        //document suppress any warnings or errors that might arise
+        //from invalid namespaces
+        $data = new \SimpleXMLElement(
+            $root.$this->pathData[ $path ].'</xml>',
+            LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
+        );
+
+        //Loop through each callback. If one of them stops the parsing
+        //then cease operation immediately
+        foreach ( $callbacks as $callback )
+        {
+            call_user_func_array( $callback, array($this, $data->children()->children()) );
+
+            if ( !$this->parse )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
