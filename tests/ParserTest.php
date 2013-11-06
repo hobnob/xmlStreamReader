@@ -268,4 +268,23 @@ class ParserTest extends PHPUnit_Framework_TestCase
 
         $this->assertGreaterThan( 0, $passed );
     }
+
+    /**
+     * @dataProvider getData
+     */
+    public function testTagWithStringContent( $data )
+    {
+        $passed    = 0;
+        $test      = $this;
+        $xmlParser = new Parser();
+        $callback  = function( $parser, $actualObj ) use (&$passed, $test) {
+            $this->assertGreaterThan(0, strlen(trim((string) $actualObj)), 'Title tag is blank on number '.$passed.'!');
+            $passed++;
+        };
+
+        $xmlParser->registerCallback('/rss/channel/item/title', $callback);
+        $xmlParser->parse($data);
+
+        $this->assertEquals( 25, $passed );
+    }
 }
