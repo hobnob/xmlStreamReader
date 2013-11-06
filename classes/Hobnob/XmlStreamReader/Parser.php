@@ -381,11 +381,18 @@ class Parser
             LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
         );
 
+        $ret = $data;
+        if (count($ret->children())) {
+            $ret = $ret->children();
+            if  (count($ret->children())) {
+                $ret = $ret->children();
+            }
+        }
         //Loop through each callback. If one of them stops the parsing
         //then cease operation immediately
         foreach ( $callbacks as $callback )
         {
-            call_user_func_array( $callback, array($this, $data->children()->children()) );
+            call_user_func_array( $callback, array($this, $ret) );
 
             if ( !$this->parse )
             {
