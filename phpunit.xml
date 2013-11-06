@@ -4,7 +4,8 @@
          convertWarningsToExceptions="true"
          strict="true"
          verbose="false"
-         bootstrap="tests/bootstrap.php">
+         bootstrap="tests/bootstrap.php"
+         timeoutForSmallTests="5">
     <testsuites>
         <testsuite name="Parser Tests">
             <directory>./tests</directory>
