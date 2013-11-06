@@ -367,32 +367,38 @@ class Parser
      */
     protected function fireCallbacks( $path, array $callbacks )
     {
-        $root = '<xml';
-        foreach ($this->namespaces as $key => $val) {
-            $root .= ' xmlns:'.$key.'="'.$val.'"';
+        $namespaceStr = '';
+        $namespaces   = $this->namespaces;
+        $matches      = array();
+        $pathData     = $this->pathData[ $path ];
+        $regex        = '/xmlns:(?P<namespace>[^=]+)="[^\"]+"/sm';
+
+        // Make sure any namespaces already defined in this element are not
+        // defined again
+        if (preg_match_all($regex, $pathData, $matches)) {
+            foreach ($matches['namespace'] as $key => $value) {
+                unset($namespaces[$value]);
+            }
         }
-        $root .= '>';
+
+        // Define all remaining namespaces on the root element
+        foreach ($namespaces as $key => $val) {
+            $namespaceStr .= ' xmlns:'.$key.'="'.$val.'"';
+        }
 
         //Build the SimpleXMLElement object. As this is a partial XML
         //document suppress any warnings or errors that might arise
         //from invalid namespaces
         $data = new \SimpleXMLElement(
-            $root.$this->pathData[ $path ].'</xml>',
+            preg_replace('/^(<[^\s>]+)/', '$1'.$namespaceStr, $pathData),
             LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
         );
 
-        $ret = $data;
-        if (count($ret->children())) {
-            $ret = $ret->children();
-            if  (count($ret->children())) {
-                $ret = $ret->children();
-            }
-        }
         //Loop through each callback. If one of them stops the parsing
         //then cease operation immediately
         foreach ( $callbacks as $callback )
         {
-            call_user_func_array( $callback, array($this, $ret) );
+            call_user_func_array( $callback, array($this, $data) );
 
             if ( !$this->parse )
             {
