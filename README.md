@@ -2,6 +2,7 @@ xmlStreamReader
 ===============
 
 [![Build Status](https://travis-ci.org/hobnob/xmlStreamReader.png?branch=master)](https://travis-ci.org/hobnob/xmlStreamReader)
+[![Dependency Status](https://www.versioneye.com/user/projects/530f5fcfec1375418400061f/badge.png)](https://www.versioneye.com/user/projects/530f5fcfec1375418400061f)
 [![Latest Stable Version](https://poser.pugx.org/hobnob/xml-stream-reader/v/stable.png)](https://packagist.org/packages/hobnob/xml-stream-reader)
 [![Montly Downloads](https://poser.pugx.org/hobnob/xml-stream-reader/d/monthly.png)](https://packagist.org/packages/hobnob/xml-stream-reader)
 
