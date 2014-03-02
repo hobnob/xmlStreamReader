@@ -9,6 +9,10 @@
  * @license http://opensource.org/licenses/mit-license.php
  */
 namespace Hobnob\XmlStreamReader;
+
+use SimpleXMLElement;
+use Exception;
+
 class Parser
 {
     /**
@@ -44,18 +48,18 @@ class Parser
      *                         relevant if $data is a stream
      *
      * @return Parser
-     * @throws \Exception
+     * @throws Exception
      */
     public function parse($data, $chunkSize = 1024)
     {
         //Ensure that the $data var is of the right type
         if (!is_string($data) && (!is_resource($data) || get_resource_type($data) !== 'stream')) {
-            throw new \Exception('Data must be a string or a stream resource');
+            throw new Exception('Data must be a string or a stream resource');
         }
 
         //Ensure $chunkSize is the right type
         if (!is_int($chunkSize)) {
-            throw new \Exception('Chunk size must be an integer');
+            throw new Exception('Chunk size must be an integer');
         }
 
         //Initialise the object
@@ -105,18 +109,18 @@ class Parser
      * @param callable $callback The callback mechanism to use
      *
      * @return Parser
-     * @throws \Exception
+     * @throws Exception
      */
     public function registerCallback($path, $callback)
     {
         //Ensure the path is a string
         if (!is_string($path)) {
-            throw new \Exception('Path must be a string');
+            throw new Exception('Path must be a string');
         }
 
         //Ensure that the callback is callable
         if (!is_callable($callback)) {
-            throw new \Exception('Callback must be callable');
+            throw new Exception('Callback must be callable');
         }
 
         //All tags and paths are lower cased, for consistency
@@ -148,13 +152,13 @@ class Parser
      * @param Array $pathCallbacks An array of paths and callbacks
      *
      * @return Parser
-     * @throws \Exception
+     * @throws Exception
      */
     public function registerCallbacks(Array $pathCallbacks)
     {
         foreach ($pathCallbacks as $row) {
             if (count($row) != 2) {
-                throw new \Exception(
+                throw new Exception(
                     'Each array element in $pathCallbacks must be an array of'
                     .' 2 elements (the path and the callback)'
                 );
@@ -202,13 +206,13 @@ class Parser
      * @param boolean  $isFinal Whether or not this is the final part to parse
      *
      * @return NULL
-     * @throws \Exception
+     * @throws Exception
      */
     protected function parseString($parser, $data, $isFinal)
     {
         if (!xml_parse($parser, $data, $isFinal)) {
-            throw new \Exception(
-                xml_error_string( xml_get_error_code( $parser ) )
+            throw new Exception(
+                xml_error_string(xml_get_error_code($parser))
                 .' At line: '.
                 xml_get_current_line_number($parser)
             );
@@ -369,7 +373,7 @@ class Parser
         //Build the SimpleXMLElement object. As this is a partial XML
         //document suppress any warnings or errors that might arise
         //from invalid namespaces
-        $data = new \SimpleXMLElement(
+        $data = new SimpleXMLElement(
             preg_replace('/^(<[^\s>]+)/', '$1'.$namespaceStr, $pathData),
             LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
         );
