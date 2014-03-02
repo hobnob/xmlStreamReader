@@ -217,6 +217,8 @@ class Parser
                 xml_get_current_line_number($parser)
             );
         }
+
+        return $parser;
     }
 
     /**
@@ -266,6 +268,8 @@ class Parser
 
         //Add the data to the path data required
         $this->addData($parser, $data);
+
+        return $parser;
     }
 
     /**
@@ -279,6 +283,8 @@ class Parser
     protected function addCdata($parser, $data)
     {
         $this->addData($parser, '<![CDATA['.$data.']]>');
+
+        return $parser;
     }
 
     /**
@@ -299,6 +305,8 @@ class Parser
                 $this->pathData[$key] .= $data;
             }
         }
+
+        return $parser;
     }
 
     /**
@@ -339,6 +347,8 @@ class Parser
             0,
             strlen($this->currentPath) - (strlen($tag) + 1)
         );
+
+        return $parser;
     }
 
     /**
