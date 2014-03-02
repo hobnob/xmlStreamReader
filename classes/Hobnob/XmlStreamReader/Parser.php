@@ -39,14 +39,14 @@ class Parser
     /**
      * Parses the XML provided using streaming and callbacks
      *
-     * @param mixed $data Either a stream resource or string containing XML
-     * @param int $chunkSize The size of data to read in at a time. Only
-     * relevant if $data is a stream
+     * @param mixed $data      Either a stream resource or string containing XML
+     * @param int   $chunkSize The size of data to read in at a time. Only
+     *                         relevant if $data is a stream
      *
      * @return Parser
      * @throws \Exception
      */
-    public function parse( $data, $chunkSize = 1024 )
+    public function parse($data, $chunkSize = 1024)
     {
         //Ensure that the $data var is of the right type
         if ( !is_string( $data )
@@ -57,8 +57,7 @@ class Parser
         }
 
         //Ensure $chunkSize is the right type
-        if ( !is_int( $chunkSize ) )
-        {
+        if ( !is_int( $chunkSize ) ) {
             throw new \Exception( 'Chunk size must be an integer' );
         }
 
@@ -84,65 +83,59 @@ class Parser
 
         //If the data is a resource then loop through it, otherwise just parse
         //the string
-        if ( is_resource( $data ) )
-        {
+        if ( is_resource( $data ) ) {
             //Not all resources support fseek. For those that don't, suppress
             // /the error
             @fseek( $data, 0 );
 
-            while( $this->parse && $chunk = fread($data, $chunkSize) )
-            {
+            while ( $this->parse && $chunk = fread($data, $chunkSize) ) {
                 $this->parseString( $parser, $chunk, feof($data) );
             }
-        }
-        else
-        {
+        } else {
             $this->parseString( $parser, $data, TRUE );
         }
 
         //Free up the parser
         xml_parser_free( $parser );
+
         return $this;
     }
 
     /**
      * Registers a single callback for a specified XML path
      *
-     * @param string $path The path that the callback is for
+     * @param string   $path     The path that the callback is for
      * @param callable $callback The callback mechanism to use
      *
      * @return Parser
      * @throws \Exception
      */
-    public function registerCallback( $path, $callback )
+    public function registerCallback($path, $callback)
     {
         //Ensure the path is a string
-        if ( !is_string( $path ) )
-        {
+        if ( !is_string( $path ) ) {
             throw new \Exception('Path must be a string');
         }
 
         //Ensure that the callback is callable
-        if ( !is_callable( $callback ) )
-        {
+        if ( !is_callable( $callback ) ) {
             throw new \Exception('Callback must be callable');
         }
 
         //All tags and paths are lower cased, for consistency
         $path = strtolower($path);
-        if ( substr($path, -1, 1) !== '/' )
-        {
+        if ( substr($path, -1, 1) !== '/' ) {
             $path .= '/';
         }
 
         //If this is the first callback for this path, initialise the variable
-        if ( !isset( $this->callbacks[$path] ) )
-        {
+        if ( !isset( $this->callbacks[$path] ) ) {
             $this->callback[$path] = array();
         }
 
         //Add the callback
         $this->callbacks[$path][] = $callback;
+
         return $this;
     }
 
@@ -160,12 +153,10 @@ class Parser
      * @return Parser
      * @throws \Exception
      */
-    public function registerCallbacks( Array $pathCallbacks )
+    public function registerCallbacks(Array $pathCallbacks)
     {
-        foreach ( $pathCallbacks as $row )
-        {
-            if ( count($row) != 2 )
-            {
+        foreach ($pathCallbacks as $row) {
+            if ( count($row) != 2 ) {
                 throw new \Exception(
                     'Each array element in $pathCallbacks must be an array of'
                     .' 2 elements (the path and the callback)'
@@ -189,6 +180,7 @@ class Parser
     public function stopParsing()
     {
         $this->parse = FALSE;
+
         return $this;
     }
 
@@ -208,17 +200,16 @@ class Parser
     /**
      * Parse data using xml_parse
      *
-     * @param resource $parser The XML parser
-     * @param string $data The data to parse
-     * @param boolean $isFinal Whether or not this is the final part to parse
+     * @param resource $parser  The XML parser
+     * @param string   $data    The data to parse
+     * @param boolean  $isFinal Whether or not this is the final part to parse
      *
      * @return NULL
      * @throws \Exception
      */
-    protected function parseString( $parser, $data, $isFinal )
+    protected function parseString($parser, $data, $isFinal)
     {
-        if (!xml_parse($parser, $data, $isFinal))
-        {
+        if (!xml_parse($parser, $data, $isFinal)) {
             throw new \Exception(
                 xml_error_string( xml_get_error_code( $parser ) )
                 .' At line: '.
@@ -230,13 +221,13 @@ class Parser
     /**
      * Parses the start tag
      *
-     * @param resource $parser The XML parser
-     * @param string $tag The tag that's being started
-     * @param array $attributes The attributes on this tag
+     * @param resource $parser     The XML parser
+     * @param string   $tag        The tag that's being started
+     * @param array    $attributes The attributes on this tag
      *
      * @return NULL
      */
-    protected function start( $parser, $tag, $attributes )
+    protected function start($parser, $tag, $attributes)
     {
         //Set the tag as lower case, for consistency
         $tag = strtolower($tag);
@@ -246,10 +237,8 @@ class Parser
 
         //Go through each callback and ensure that path data has been
         //started for it
-        foreach( $this->callbacks as $path => $callbacks )
-        {
-            if ( $path === $this->currentPath )
-            {
+        foreach ($this->callbacks as $path => $callbacks) {
+            if ($path === $this->currentPath) {
                 $this->pathData[ $this->currentPath ] = '';
             }
         }
@@ -257,8 +246,7 @@ class Parser
         //Generate the tag, with attributes. Attribute names are also lower
         //cased, for consistency
         $data = '<'.$tag;
-        foreach ( $attributes as $key => $val )
-        {
+        foreach ($attributes as $key => $val) {
             $options = ENT_QUOTES;
             if (defined('ENT_XML1')) {
                 $options |= ENT_XML1;
@@ -283,11 +271,11 @@ class Parser
      * Adds CDATA to any paths that require it
      *
      * @param resource $parser
-     * @param string $data
+     * @param string   $data
      *
      * @return NULL
      */
-    protected function addCdata( $parser, $data )
+    protected function addCdata($parser, $data)
     {
         $this->addData( $parser, '<![CDATA['.$data.']]>');
     }
@@ -296,19 +284,17 @@ class Parser
      * Adds data to any paths that require it
      *
      * @param resource $parser
-     * @param string $data
+     * @param string   $data
      *
      * @return NULL
      */
-    protected function addData( $parser, $data )
+    protected function addData($parser, $data)
     {
         //Having a path data entry means at least 1 callback is interested in
         //the data. Loop through each path here and, if inside that path, add
         //the data
-        foreach ($this->pathData as $key => $val)
-        {
-            if ( strpos($this->currentPath, $key) !== FALSE )
-            {
+        foreach ($this->pathData as $key => $val) {
+            if ( strpos($this->currentPath, $key) !== FALSE ) {
                 $this->pathData[$key] .= $data;
             }
         }
@@ -318,11 +304,11 @@ class Parser
      * Parses the end of a tag
      *
      * @param resource $parser
-     * @param string $tag
+     * @param string   $tag
      *
      * @return NULL
      */
-    protected function end( $parser, $tag )
+    protected function end($parser, $tag)
     {
         //Make the tag lower case, for consistency
         $tag = strtolower($tag);
@@ -333,14 +319,11 @@ class Parser
 
         //Loop through each callback and see if the path matches the
         //current path
-        foreach( $this->callbacks as $path => $callbacks )
-        {
+        foreach ($this->callbacks as $path => $callbacks) {
             //If parsing should continue, and the paths match, then a callback
             //needs to be made
-            if ( $this->parse && $this->currentPath === $path )
-            {
-                if( !$this->fireCallbacks( $path, $callbacks ) )
-                {
+            if ($this->parse && $this->currentPath === $path) {
+                if ( !$this->fireCallbacks( $path, $callbacks ) ) {
                     break;
                 }
             }
@@ -360,12 +343,12 @@ class Parser
     /**
      * Generates a SimpleXMLElement and passes it to each of the callbacks
      *
-     * @param  string  $path        The path to create the SimpleXMLElement from
-     * @param  array   $callbacks   An array of callbacks to be fired.
+     * @param string $path      The path to create the SimpleXMLElement from
+     * @param array  $callbacks An array of callbacks to be fired.
      *
      * @return boolean
      */
-    protected function fireCallbacks( $path, array $callbacks )
+    protected function fireCallbacks($path, array $callbacks)
     {
         $namespaceStr = '';
         $namespaces   = $this->namespaces;
@@ -396,12 +379,10 @@ class Parser
 
         //Loop through each callback. If one of them stops the parsing
         //then cease operation immediately
-        foreach ( $callbacks as $callback )
-        {
+        foreach ($callbacks as $callback) {
             call_user_func_array( $callback, array($this, $data) );
 
-            if ( !$this->parse )
-            {
+            if (!$this->parse) {
                 return false;
             }
         }
