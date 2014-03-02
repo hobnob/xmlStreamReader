@@ -242,7 +242,7 @@ class Parser
         //started for it
         foreach ($this->callbacks as $path => $callbacks) {
             if ($path === $this->currentPath) {
-                $this->pathData[ $this->currentPath ] = '';
+                $this->pathData[$this->currentPath] = '';
             }
         }
 
@@ -339,7 +339,7 @@ class Parser
         }
 
         //Unset the path data for this path, as it's no longer needed
-        unset($this->pathData[ $this->currentPath ]);
+        unset($this->pathData[$this->currentPath]);
 
         //Update the path with the new path (effectively moving up a directory)
         $this->currentPath = substr(
@@ -364,7 +364,7 @@ class Parser
         $namespaceStr = '';
         $namespaces   = $this->namespaces;
         $matches      = array();
-        $pathData     = $this->pathData[ $path ];
+        $pathData     = $this->pathData[$path];
         $regex        = '/xmlns:(?P<namespace>[^=]+)="[^\"]+"/sm';
 
         // Make sure any namespaces already defined in this element are not
