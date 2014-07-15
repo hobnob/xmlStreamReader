@@ -3,7 +3,7 @@ use \Hobnob\XmlStreamReader\Parser;
 
 class ParserTest extends PHPUnit_Framework_TestCase
 {
-    public function getData()
+    public static function getData()
     {
         return array(
             array(fopen(__DIR__.'/test.xml', 'r')),
@@ -311,5 +311,42 @@ class ParserTest extends PHPUnit_Framework_TestCase
         $xmlParser->parse($data);
 
         $this->assertEquals( 1, $passed );
+    }
+
+    /**
+     * @dataProvider getData
+     */
+    public function testAttributePathResultsInAllNodesBeingFound( $data )
+    {
+        $callCount = 0;
+        $xmlParser = new Parser();
+        $callback  = function () use (&$callCount) {
+            $callCount++;
+        };
+
+        $xmlParser->registerCallback('/rss/channel/item/category/@domain', $callback);
+        $xmlParser->parse($data);
+
+        $this->assertEquals( 240, $callCount );
+    }
+
+    /**
+     * @dataProvider getData
+     */
+    public function testAttributePathResultsInTheFirstTwoValuesReadCorrectly( $data )
+    {
+        $xmlParser = new Parser();
+        $values     = array();
+        $callback  = function ( $parser, $val ) use (&$values) {
+            $values[] = $val;
+        };
+
+        $xmlParser->registerCallback('/rss/channel/item/category/@domain', $callback);
+        $xmlParser->parse($data);
+
+        $this->assertEquals(
+            array('http://www.guardian.co.uk/publication', 'http://www.guardian.co.uk/world'),
+            array($values[0], $values[1])
+        );
     }
 }
