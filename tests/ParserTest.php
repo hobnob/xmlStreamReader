@@ -3,7 +3,7 @@ use \Hobnob\XmlStreamReader\Parser;
 
 class ParserTest extends PHPUnit_Framework_TestCase
 {
-    public function getData()
+    public static function getData()
     {
         return array(
             array(fopen(__DIR__.'/test.xml', 'r')),
