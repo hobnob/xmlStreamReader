@@ -238,6 +238,8 @@ class Parser
         //Update the current path
         $this->currentPath .= $tag.'/';
 
+        $this->fireCurrentAttributesCallbacks($attributes);
+
         //Go through each callback and ensure that path data has been
         //started for it
         foreach ($this->callbacks as $path => $callbacks) {
@@ -399,5 +401,26 @@ class Parser
         }
 
         return true;
+    }
+
+    /**
+     * Traverses the passed attributes, assuming the currentPath, and invokes registered callbacks,
+     * if there are any
+     *
+     * @param array $attributes Key-value map for the current element
+     *
+     * @return void
+     */
+    protected function fireCurrentAttributesCallbacks($attributes)
+    {
+        foreach ($attributes as $key => $val) {
+            $path = $this->currentPath . '@' . strtolower($key) . '/';
+
+            if (isset($this->callbacks[$path])) {
+                foreach ($this->callbacks[$path] as $callback) {
+                    call_user_func_array($callback, array($this, $val));
+                }
+            }
+        }
     }
 }

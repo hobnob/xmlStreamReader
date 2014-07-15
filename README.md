@@ -42,6 +42,14 @@ $xmlParser->registerCallback(
         // do stuff with $node
     }
 );
+
+$xmlParser->registerCallback(
+    '/xml/node/@attr',
+    function( \Hobnob\XmlStreamReader\Parser $parser, $attrValue ) {
+        // do stuff with $attrValue
+    }
+);
+
 $xmlParser->parse(fopen('file.xml', 'r'));
 ```
 

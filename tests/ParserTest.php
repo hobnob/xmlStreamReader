@@ -312,4 +312,41 @@ class ParserTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals( 1, $passed );
     }
+
+    /**
+     * @dataProvider getData
+     */
+    public function testAttributePathResultsInAllNodesBeingFound( $data )
+    {
+        $callCount = 0;
+        $xmlParser = new Parser();
+        $callback  = function () use (&$callCount) {
+            $callCount++;
+        };
+
+        $xmlParser->registerCallback('/rss/channel/item/category/@domain', $callback);
+        $xmlParser->parse($data);
+
+        $this->assertEquals( 240, $callCount );
+    }
+
+    /**
+     * @dataProvider getData
+     */
+    public function testAttributePathResultsInTheFirstTwoValuesReadCorrectly( $data )
+    {
+        $xmlParser = new Parser();
+        $values     = array();
+        $callback  = function ( $parser, $val ) use (&$values) {
+            $values[] = $val;
+        };
+
+        $xmlParser->registerCallback('/rss/channel/item/category/@domain', $callback);
+        $xmlParser->parse($data);
+
+        $this->assertEquals(
+            ['http://www.guardian.co.uk/publication', 'http://www.guardian.co.uk/world'],
+            [$values[0], $values[1]]
+        );
+    }
 }
