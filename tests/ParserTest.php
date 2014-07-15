@@ -345,8 +345,8 @@ class ParserTest extends PHPUnit_Framework_TestCase
         $xmlParser->parse($data);
 
         $this->assertEquals(
-            ['http://www.guardian.co.uk/publication', 'http://www.guardian.co.uk/world'],
-            [$values[0], $values[1]]
+            array('http://www.guardian.co.uk/publication', 'http://www.guardian.co.uk/world'),
+            array($values[0], $values[1])
         );
     }
 }
