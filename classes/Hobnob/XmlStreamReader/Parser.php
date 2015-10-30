@@ -387,7 +387,7 @@ class Parser
         //from invalid namespaces
         $data = new SimpleXMLElement(
             preg_replace('/^(<[^\s>]+)/', '$1'.$namespaceStr, $pathData),
-            LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING
+            LIBXML_COMPACT | LIBXML_NOERROR | LIBXML_NOWARNING | LIBXML_NOCDATA
         );
 
         //Loop through each callback. If one of them stops the parsing
