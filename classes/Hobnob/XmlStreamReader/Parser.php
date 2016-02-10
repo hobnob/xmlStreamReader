@@ -18,27 +18,27 @@ class Parser
     /**
      * @var array An array of registered callbacks
      */
-    private $callbacks = array();
+    protected $callbacks = array();
 
     /**
      * @var string The current node path being investigated
      */
-    private $currentPath = '/';
+    protected $currentPath = '/';
 
     /**
      * @var array An array path data for paths that require callbacks
      */
-    private $pathData = array();
+    protected $pathData = array();
 
     /**
      * @var boolean Whether or not the object is currently parsing
      */
-    private $parse = FALSE;
+    protected $parse = FALSE;
 
     /**
      * @var array A list of namespaces in this XML
      */
-    private $namespaces = array();
+    protected $namespaces = array();
 
     /**
      * Parses the XML provided using streaming and callbacks
@@ -190,7 +190,7 @@ class Parser
      *
      * @return NULL
      */
-    private function init()
+    protected function init()
     {
         $this->namespaces  = array();
         $this->currentPath = '/';
