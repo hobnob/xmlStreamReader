@@ -113,6 +113,15 @@ class Parser
      */
     public function registerCallback($path, $callback)
     {
+        //Register a single callback to multiple paths
+        if (is_array($path)) {
+            foreach ($path as $one) {
+                $this->registerCallback($one, $callback);
+            }
+
+            return $this;
+        }
+        
         //Ensure the path is a string
         if (!is_string($path)) {
             throw new Exception('Path must be a string');
