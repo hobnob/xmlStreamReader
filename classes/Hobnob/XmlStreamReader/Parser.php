@@ -85,9 +85,11 @@ class Parser
         //If the data is a resource then loop through it, otherwise just parse
         //the string
         if (is_resource($data)) {
-            //Not all resources support fseek. For those that don't, suppress
-            // /the error
-            @fseek($data, 0);
+            //Not all resources support fseek.
+            $meta = stream_get_meta_data($data);
+            if($meta['seekable']) {
+                fseek($data, 0);
+            }
 
             while ($this->parse && $chunk = fread($data, $chunkSize)) {
                 $this->parseString($parser, $chunk, feof($data));
@@ -257,7 +259,7 @@ class Parser
                 $options |= ENT_XML1;
             }
 
-            $val   = htmlentities($val, $options, "UTF-8");
+            $val   = htmlspecialchars($val, $options, "UTF-8");
             $data .= ' '.strtolower($key).'="'.$val.'"';
 
             if (stripos($key, 'xmlns:') !== false) {
