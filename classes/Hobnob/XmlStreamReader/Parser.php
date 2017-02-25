@@ -214,7 +214,7 @@ class Parser
     {
         if (!xml_parse($parser, $data, $isFinal)) {
             throw new Exception(
-                xml_error_string(xml_get_error_code($parser))
+                ucfirst(xml_error_string(xml_get_error_code($parser)))
                 .' At line: '.
                 xml_get_current_line_number($parser)
             );
